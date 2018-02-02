@@ -1,96 +1,86 @@
 # Event-Dawn
 
-Event-Dawn is anapplication for creating and managing events for a group of people.
+Event-Dawn is an application for creating and managing events for a group of people.
 
-<!-- ## Installing / Getting started
+<!-- ## Getting Started
 
-A quick introduction of the minimal setup you need to get a hello world up &
-running.
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
-```shell
-commands here
-``` -->
+### Prerequisites
 
-## Developing
+What things you need to install the software and how to install them
 
-### Built With
-[Meteor](https://www.meteor.com/) and [React](https://reactjs.org/)
-
-<!-- ### Prerequisites
-What is needed to set up the dev environment. For instance, global dependencies or any other tools. include download links.
-
-
-### Setting up Dev
-
-Here's a brief intro about what a developer must do in order to start developing
-the project further:
-
-```shell
-git clone https://github.com/your/your-project.git
-cd your-project/
-packagemanager install
+```
+Give examples
 ```
 
-And state what happens step-by-step. If there is any virtual environment, local server or database feeder needed, explain here.
+### Installing
 
-### Building
+A step by step series of examples that tell you have to get a development env running
 
-If your project needs some additional steps for the developer to build the
-project after some code changes, state them here. for example:
+Say what the step will be
 
-```shell
-./configure
-make
-make install
+```
+Give the example
 ```
 
-Here again you should state what actually happens when the code above gets
-executed. -->
+And repeat
 
-<!-- ### Deploying / Publishing
-give instructions on how to build and release a new version
-In case there's some step you have to take that publishes this project to a
-server, this is the right time to state it.
-
-```shell
-packagemanager deploy your-project -s server.com -u username -p password
+```
+until finished
 ```
 
-And again you'd need to tell what the previous code actually does.
+End with an example of getting some data out of the system or using it for a little demo
 
-## Versioning -->
+## Running the tests
 
-<!-- We can maybe use [SemVer](http://semver.org/) for versioning. For the versions available, see the [link to tags on this repository](/tags).
+Explain how to run the automated tests for this system
 
+### Break down into end to end tests
 
-## Configuration
+Explain what these tests test and why
 
-Here you should write what are all of the configurations a user can enter when
-using the project.
-
-## Tests
-
-Describe and show how to run the tests with code examples.
-Explain what these tests test and why.
-
-```shell
+```
 Give an example
 ```
 
-## Style guide
+### And coding style tests
 
-Explain your code style and show how to check it.
+Explain what these tests test and why
 
-## Api Reference
+```
+Give an example
+```
 
-If the api is external, link to api documentation. If not describe your api including authentication methods as well as explaining all the endpoints with their required parameters.
+## Deployment
 
+Add additional notes about how to deploy this on a live system -->
 
-## Database
+## Built With
+* [Meteor](https://www.meteor.com/)
+* [React](https://reactjs.org/)
 
-Explaining what database (and version) has been used. Provide download links.
-Documents your database design and schemas, relations etc... 
+<!--## Contributing
 
-## Licensing
+Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
 
-State what the license is and how to find the text version of the license. -->
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
+-->
+## Authors
+
+* **[Dylan](https://github.com/Dylan974)** - *Initial work*
+* **[Arnaud](https://github.com/PanArnaud)** - *Initial work*
+
+<!-- See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+
+## Acknowledgments
+
+* Hat tip to anyone who's code was used
+* Inspiration
+* etc -->
