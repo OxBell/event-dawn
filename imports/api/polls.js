@@ -50,6 +50,38 @@ Meteor.methods({
         }, {
             $push: { choices: choice } 
         });
+    },
+    'polls.updateChoice'(_id, choice) {
+        if(!this.userId){
+            throw new Meteor.Error('not-authorized');
+        }
+        
+        new SimpleSchema({
+            _id: {
+                type: String,
+                min: 1
+            }
+            // Validate an object ... error => choice.name is not allowed by the schema
+            // choice: {
+            //     type: Object
+            // }
+        }).validate({ _id });
+
+        const choices = Polls.findOne({
+            _id
+        }).choices;
+
+        for(key in choices) {
+            if(choices[key]._id === choice._id){
+                choices[key] = choice;
+            }
+        }
+
+        Polls.update( {
+            _id, 
+        }, {
+            $set: {choices}
+        });
 
     }
 });

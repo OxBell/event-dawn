@@ -14,8 +14,8 @@ export default class AddChoice extends React.Component {
             error: '',
             name: '',
             place: '',
-            startDate: '',
-            endDate: ''
+            startDate: moment(new Date()).format('Y-MM-DDTHH:mm'),
+            endDate: moment(new Date()).format('Y-MM-DDTHH:mm')
         };
     }
 
@@ -38,7 +38,7 @@ export default class AddChoice extends React.Component {
             startDate,
             endDate,
             userId: Meteor.userId(),
-            votes: null
+            votes: []
         }
         
         const poll_id = Polls.findOne({
@@ -111,7 +111,8 @@ export default class AddChoice extends React.Component {
                             <TextField
                                 id="datetime-local-start"
                                 label="Start Date"
-                                value={this.state.startDate} onChange={this.onStartDateChange.bind(this)}
+                                value={this.state.startDate} 
+                                onChange={this.onStartDateChange.bind(this)}
                                 type="datetime-local"
                                 InputLabelProps={{
                                     shrink: true,

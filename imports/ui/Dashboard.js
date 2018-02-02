@@ -22,9 +22,9 @@ export default class Dashboard extends React.Component {
         <PrivateHeader title='Dashboard'/>
         <div className="page-content">
           Dashboard page content.
-        </div>
-        <AddChoice/>
-        <Poll/>
+          <AddChoice/>
+          <Poll/>
+        </div>        
       </div>
     );
   }

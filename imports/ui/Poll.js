@@ -17,7 +17,6 @@ export default class Poll extends React.Component {
 
     componentDidMount() {
         this.pollsTracker = Tracker.autorun(() => {
-            console.log(this.state.poll);
             Meteor.subscribe('polls');
             const poll = Polls.findOne({
                 state: 'current'
@@ -70,7 +69,7 @@ export default class Poll extends React.Component {
         } else if (this.state.poll) {
             console.log(this.state.poll);
             return this.state.poll.choices.map((choice) => {
-                return <Choice key={choice._id} choice={choice}/>;
+                return <Choice key={choice._id} choice={choice} poll={this.state.poll._id}/>;
             });
         }
     }
