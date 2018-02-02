@@ -3,6 +3,7 @@ import { Meteor } from 'meteor/meteor';
 
 import PrivateHeader from './PrivateHeader';
 import Poll from './Poll';
+import AddChoice from './AddChoice';
 import { Polls } from '../api/polls';
 
 export default class Dashboard extends React.Component {
@@ -22,6 +23,7 @@ export default class Dashboard extends React.Component {
         <div className="page-content">
           Dashboard page content.
         </div>
+        <AddChoice/>
         <Poll/>
       </div>
     );

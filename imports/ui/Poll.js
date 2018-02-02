@@ -4,6 +4,7 @@ import { Tracker } from 'meteor/tracker';
 import moment from 'moment';
 
 import { Polls } from '../api/polls';
+import Choice from './Choice';
 
 export default class Poll extends React.Component {
     constructor(props){
@@ -16,6 +17,7 @@ export default class Poll extends React.Component {
 
     componentDidMount() {
         this.pollsTracker = Tracker.autorun(() => {
+            console.log(this.state.poll);
             Meteor.subscribe('polls');
             const poll = Polls.findOne({
                 state: 'current'
@@ -35,7 +37,7 @@ export default class Poll extends React.Component {
         if (!err) {
             console.log('success', res);
         } else {
-            this.setState({error : err.reason});
+            this.setState({error : err.error});
             console.log('error', err);
         }
 
@@ -43,7 +45,6 @@ export default class Poll extends React.Component {
     }
 
     renderPoll() {
-        console.log(this.state.poll);
         if(!this.state.poll) {
             return (
                 <div>
@@ -59,12 +60,28 @@ export default class Poll extends React.Component {
         );
     }
 
+    renderChoices() {
+        if(this.state.poll && this.state.poll.choices.length === 0) {
+            return (
+                <div>
+                    <p>No choices found. A true animals group...</p>
+                </div>
+            );
+        } else if (this.state.poll) {
+            console.log(this.state.poll);
+            return this.state.poll.choices.map((choice) => {
+                return <Choice key={choice._id} choice={choice}/>;
+            });
+        }
+    }
+
     render() {
         return(
             <div>
-                {this.state.error !=='' ? <p>{this.state.error}</p> : undefined}
+                {this.state.error ? <p>{this.state.error}</p> : undefined}
                 <button className='button' onClick={() => this.addPoll()}>+ Add Poll</button>
                 {this.renderPoll()}
+                {this.renderChoices()}
             </div>
         );
     }

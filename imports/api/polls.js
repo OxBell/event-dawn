@@ -26,10 +26,30 @@ Meteor.methods({
         Polls.insert({
             state: 'current',
             date: new Date().getTime(),
-            choices: null
+            choices: []
         });
     },
-    test() {
-        console.log('test');
+    'polls.addChoice'(_id, choice) {
+        if(!this.userId){
+            throw new Meteor.Error('not-authorized');
+        }
+        
+        new SimpleSchema({
+            _id: {
+                type: String,
+                min: 1
+            }
+            // Validate an object ... error => choice.name is not allowed by the schema
+            // choice: {
+            //     type: Object
+            // }
+        }).validate({ _id });
+
+        Polls.update( {
+            _id, 
+        }, {
+            $push: { choices: choice } 
+        });
+
     }
 });
