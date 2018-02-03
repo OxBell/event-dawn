@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import SimpleSchema from 'simpl-schema';
+import { Roles } from 'meteor/alanning:roles';
 
 export const Polls = new Mongo.Collection('polls');
 
@@ -30,8 +31,8 @@ Meteor.methods({
         });
     },
     'polls.addChoice'(_id, choice) {
-        if(!this.userId){
-            throw new Meteor.Error('not-authorized');
+        if(!this.userId || !Roles.userIsInRole(this.userId, ['normal-user'])){
+            throw new Meteor.Error(403, 'not-authorized');
         }
         
         new SimpleSchema({
@@ -52,7 +53,7 @@ Meteor.methods({
         });
     },
     'polls.updateChoice'(_id, choice) {
-        if(!this.userId){
+        if(!this.userId || !Roles.userIsInRole(this.userId, ['normal-user'])){
             throw new Meteor.Error('not-authorized');
         }
         
@@ -82,6 +83,5 @@ Meteor.methods({
         }, {
             $set: {choices}
         });
-
     }
 });

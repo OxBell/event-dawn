@@ -16,8 +16,22 @@ export default class Choice extends React.Component {
         };
     }
 
+    getUserNickname(_id) {
+        Meteor.subscribe('singleUser', _id);
+        // return Meteor.users.find({ _id }).profile.nickname;
+        if(Meteor.users.find({ _id }).fetch()[0]){
+            return Meteor.users.find({ _id }, {
+                fields: {
+                    'createdAt': 0,
+                    'services': 0,
+                    'emails': 0,
+                    'roles': 0
+                }
+            }).fetch()[0].profile.nickname;
+        }
+    }
+
     addVote() {
-        console.log(this.state.alreadyVote);
         if(!this.state.alreadyVote) {
             this.props.choice.votes.push({
                 _id: shortid.generate(),
@@ -38,10 +52,9 @@ export default class Choice extends React.Component {
     }
 
     renderVotes() {
-        console.log(this.props.choice.votes);
         return this.props.choice.votes.map((vote) => {
             return (
-                <p key={vote._id}>{vote.userId}</p>
+                <p key={vote._id}>{this.getUserNickname(vote.userId)}</p>
             );
         });
     }
@@ -50,7 +63,7 @@ export default class Choice extends React.Component {
         return (
             <div>
                 <div>
-                    <h4>{this.props.choice.name}</h4>
+                    <h4>{this.props.choice.name} by {this.getUserNickname(this.props.choice.userId)}</h4>
                     <p>Début : {moment(this.props.choice.startDate).format('D/M/Y HH:mm')} h</p>
                     <p>Fin : {moment(this.props.choice.endDate).format('D/M/Y HH:mm')} h</p>
                     <p>Lieu : {this.props.choice.place} - durée : {this.props.choice.duration} h</p>

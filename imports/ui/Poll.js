@@ -30,8 +30,6 @@ export default class Poll extends React.Component {
     }
 
     addPoll() {
-        console.log('add poll function');
-
         Meteor.call('polls.insert', (err, res) => {
         if (!err) {
             console.log('success', res);
@@ -67,7 +65,6 @@ export default class Poll extends React.Component {
                 </div>
             );
         } else if (this.state.poll) {
-            console.log(this.state.poll);
             return this.state.poll.choices.map((choice) => {
                 return <Choice key={choice._id} choice={choice} poll={this.state.poll._id}/>;
             });
