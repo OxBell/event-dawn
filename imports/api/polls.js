@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import SimpleSchema from 'simpl-schema';
 import { Roles } from 'meteor/alanning:roles';
+import { Events } from './events';
 
 export const Polls = new Mongo.Collection('polls');
 
@@ -14,8 +15,8 @@ if(Meteor.isServer) {
 Meteor.methods({
     'polls.insert'() {
 
-        if (Polls.findOne({ state: 'current' })){
-            throw new Meteor.Error('Already have current poll');
+        if (Polls.findOne({ state: 'current' }) || Events.findOne({ state: 'current' })){
+            throw new Meteor.Error('Already have current poll or a event already planed!');
         }
 
         new SimpleSchema({
@@ -52,6 +53,13 @@ Meteor.methods({
             $push: { choices: choice } 
         });
     },
+    'polls.finish'(_id) {
+        Polls.update( {
+            _id, 
+        }, {
+            $set: {state: 'finished'}
+        });
+    },
     'polls.updateChoice'(_id, choice) {
         if(!this.userId || !Roles.userIsInRole(this.userId, ['normal-user'])){
             throw new Meteor.Error('not-authorized');
@@ -83,5 +91,30 @@ Meteor.methods({
         }, {
             $set: {choices}
         });
+    },
+    'polls.getBestChoice'(choices) {
+        if(choices.length === 0){
+            return new Meteor.Error('no choice!');
+        } else if(choices.length === 1){
+            return choices[0];
+        } else if(choices.length > 1){
+            let choice = choices[0];
+            for(let i=1; i < choices.length; i++) {
+                if(choices[i].votes.length > choice.votes.length){
+                    choice = choices[i];
+                }
+            }
+            return choice;
+        }
+    },
+    'polls.getParticipants'(votes) {
+        if(votes.length === 0) {
+            return new Meteor.Error('no participant!');
+        }
+        participants = [];
+        votes.forEach((vote)=> {
+            participants.push(vote.userId);
+        });
+        return participants;
     }
 });

@@ -3,8 +3,10 @@ import { Meteor } from 'meteor/meteor';
 
 import PrivateHeader from './PrivateHeader';
 import Poll from './Poll';
-import AddChoice from './AddChoice';
+
 import { Polls } from '../api/polls';
+import Event from './Event';
+import { Events } from '../api/events';
 
 export default class Dashboard extends React.Component {
 
@@ -12,8 +14,22 @@ export default class Dashboard extends React.Component {
     super(props);
     this.state = {
       error: '',
-      polls: []
+      event: null
     };
+  }
+
+  componentDidMount() {
+    this.eventsTracker = Tracker.autorun(() => {
+        Meteor.subscribe('events');
+        const event = Events.findOne({
+            state: 'current'
+        });
+        this.setState({ event });
+    });
+  }
+
+  componentWillUnmount() {
+      this.eventsTracker.stop();
   }
 
   render() {
@@ -22,8 +38,8 @@ export default class Dashboard extends React.Component {
         <PrivateHeader title='Dashboard'/>
         <div className="page-content">
           Dashboard page content.
-          <AddChoice/>
-          <Poll/>
+          {this.state.event ? undefined : <Event event={this.state.event}/>} {/* TO DELETE WHEN EVENT AUTO GENERATE */}
+          {this.state.event ? <Event event={this.state.event}/> : <Poll/>}
         </div>        
       </div>
     );
