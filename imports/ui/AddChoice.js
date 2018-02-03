@@ -24,35 +24,34 @@ export default class AddChoice extends React.Component {
     }
 
     onSubmit(e) {
-
         e.preventDefault();
 
-        const { name, place } = this.state; // const name = this.state.name, const duration = this.state.duration, const place = this.state.place
-        const startDate = new Date(this.state.startDate).getTime();
-        const endDate = new Date(this.state.endDate).getTime();
-        const choice =  {
-            _id: shortid.generate(),
-            name,
-            duration: moment(endDate).diff(startDate, 'hours'),
-            place,
-            startDate,
-            endDate,
-            userId: Meteor.userId(),
-            votes: []
-        }
-        
-        const poll_id = Polls.findOne({
-            state: 'current'
-        })._id;
-
-        Meteor.call('polls.addChoice', poll_id, choice, (err, res) => {
-            if (!err) {
-                this.handleModalClose();
-            } else {
-                this.setState({error: err.reason });
+        if(this.props.poll){
+            const { name, place } = this.state; // const name = this.state.name, const duration = this.state.duration, const place = this.state.place
+            const startDate = new Date(this.state.startDate).getTime();
+            const endDate = new Date(this.state.endDate).getTime();
+            const choice =  {
+                _id: shortid.generate(),
+                name,
+                duration: moment(endDate).diff(startDate, 'hours'),
+                place,
+                startDate,
+                endDate,
+                userId: Meteor.userId(),
+                votes: []
             }
-
-        });
+                
+            Meteor.call('polls.addChoice', this.props.poll._id, choice, (err, res) => {
+                if (!err) {
+                    this.handleModalClose();
+                } else {
+                    this.setState({error: err.reason });
+                }
+    
+            });
+        } else {
+            this.setState({error: 'No poll to add the choice!' });
+        }
     }
 
     onNameChange(e) {

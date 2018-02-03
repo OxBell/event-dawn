@@ -31,6 +31,25 @@ export default class Choice extends React.Component {
         }
     }
 
+    removeVote() {
+        if(this.state.alreadyVote) {
+            this.props.choice.votes.forEach((elem, i) => {
+                if(elem.userId === Meteor.userId()){
+                    this.props.choice.votes.splice(i,1);
+                }
+            });
+            Meteor.call('polls.updateChoice', this.props.poll, this.props.choice, (err, res) => {
+                if (!err) {
+                    this.setState({ alreadyVote: false });
+                } else {
+                    this.setState({error : err.error});
+                }
+            });
+        } else {
+            this.setState({ error: 'You haven\'t vote for this choice' });
+        }
+    }
+
     addVote() {
         if(!this.state.alreadyVote) {
             this.props.choice.votes.push({
@@ -39,16 +58,14 @@ export default class Choice extends React.Component {
             });
             Meteor.call('polls.updateChoice', this.props.poll, this.props.choice, (err, res) => {
                 if (!err) {
-                    console.log('success', res);
+                    this.setState({ alreadyVote: true });
                 } else {
-                    console.log('error', err);
+                    this.setState({error : err.error});
                 }
             });
-            this.setState({ alreadyVote: true });
         } else {
             this.setState({ error: 'You already vote for this choice' });
         }
-        
     }
 
     renderVotes() {
@@ -67,7 +84,7 @@ export default class Choice extends React.Component {
                     <p>Début : {moment(this.props.choice.startDate).format('D/M/Y HH:mm')} h</p>
                     <p>Fin : {moment(this.props.choice.endDate).format('D/M/Y HH:mm')} h</p>
                     <p>Lieu : {this.props.choice.place} - durée : {this.props.choice.duration} h</p>
-                    {!this.state.alreadyVote ? <button onClick={this.addVote.bind(this)}>Voter</button> : undefined}
+                    {!this.state.alreadyVote ? <button onClick={this.addVote.bind(this)}>Voter</button> : <button onClick={this.removeVote.bind(this)}>Retirer vote</button>}
                     <p>{this.props.choice.votes.length} vote(s)</p>
                     {this.renderVotes()}
                 </div>
