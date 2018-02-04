@@ -45,5 +45,9 @@ Meteor.methods({
     } catch (err) {
       throw new Meteor.Error(500, 'Can\'t add role to user', err);
     }
+  },
+  'users.getAvatar'(_id, size) {
+    let path = Users.find({_id}).profile.profile_picture;
+    return path + size +".png";
   }
 });
