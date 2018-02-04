@@ -76,7 +76,7 @@ export default class Event extends React.Component {
         }
     }
 
-    getUserNickname(_id) {
+    getUserUsername(_id) {
         Meteor.subscribe('singleUser', _id);
         if(Meteor.users.find({ _id }).fetch()[0]){
             return Meteor.users.find({ _id }, {
@@ -86,7 +86,7 @@ export default class Event extends React.Component {
                     'emails': 0,
                     'roles': 0
                 }
-            }).fetch()[0].profile.nickname;
+            }).fetch()[0].profile.username;
         }
     }
 
@@ -106,14 +106,14 @@ export default class Event extends React.Component {
 
     renderParticipants() {
         return this.props.event.users.map((user) => {
-            return <p key={user}>{this.getUserNickname(user)}</p>
+            return <p key={user}>{this.getUserUsername(user)}</p>
         });
     }
 
     renderEvent() {
         return (
             <div>
-                <h1>{this.props.event.name} - manager : {this.getUserNickname(this.props.event.userId)}</h1>
+                <h1>{this.props.event.name} - manager : {this.getUserUsername(this.props.event.userId)}</h1>
                 <p>Place : {this.props.event.place}</p>
                 <p>Start at {moment(this.props.event.startDate).format('D/M/Y HH:mm')}h, end at {moment(this.props.event.endDate).format('D/M/Y HH:mm')}h ({this.props.event.duration}h)</p>
                 {this.renderParticipants()}

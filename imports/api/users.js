@@ -18,13 +18,22 @@ if(Meteor.isServer) {
 
 Accounts.validateNewUser((user) => {
   const email = user.emails[0].address;
-  
+  const username = user.profile.username;
+
   new SimpleSchema({
+    username: {
+      type: String,
+      min: 4,
+      regEx: /[a-zA-Z][a-zA-Z0-9-_]{4,32}/,
+    },
     email: {
       type: String,
       regEx: SimpleSchema.RegEx.Email
     }
-  }).validate({ email });
+  }).validate({ 
+    username, 
+    email
+  });
 
   return true;
 });
@@ -34,7 +43,7 @@ Meteor.methods({
     try {
       Roles.addUsersToRoles(_id, ['normal-user']);
     } catch (err) {
-      throw new Meteor.Error(500, 'can\'t add role to user', err);
+      throw new Meteor.Error(500, 'Can\'t add role to user', err);
     }
   }
 });
