@@ -5,6 +5,7 @@ import moment from 'moment';
 
 import { Polls } from '../api/polls';
 import Choice from './Choice';
+import AddChoice from './AddChoice';
 
 export default class Poll extends React.Component {
     constructor(props){
@@ -32,10 +33,8 @@ export default class Poll extends React.Component {
     addPoll() {
         Meteor.call('polls.insert', (err, res) => {
         if (!err) {
-            console.log('success', res);
         } else {
             this.setState({error : err.error});
-            console.log('error', err);
         }
 
         });
@@ -75,7 +74,8 @@ export default class Poll extends React.Component {
         return(
             <div>
                 {this.state.error ? <p>{this.state.error}</p> : undefined}
-                <button className='button' onClick={() => this.addPoll()}>+ Add Poll</button>
+                <button className='button' onClick={() => this.addPoll()}>+ Add Poll</button> {/* TO DELETE WHEN POLL AUTO GENERATE */}
+                {this.state.poll ? <AddChoice poll={this.state.poll}/> : undefined}
                 {this.renderPoll()}
                 {this.renderChoices()}
             </div>

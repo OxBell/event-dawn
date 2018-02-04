@@ -31,9 +31,8 @@ export default class Signup extends React.Component {
         this.setState({error: ''});
         Meteor.call('users.addRole', Meteor.userId(), (err, res) => {
           if(err){
-            console.log('error', err);
+            this.setState({error : err.error});
           } else {
-            console.log('success', res);
           }
         });
       }
