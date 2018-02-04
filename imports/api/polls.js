@@ -2,6 +2,8 @@ import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import SimpleSchema from 'simpl-schema';
 import { Roles } from 'meteor/alanning:roles';
+import shortid from 'shortid';
+
 import { Events } from './events';
 
 export const Polls = new Mongo.Collection('polls');
@@ -46,6 +48,11 @@ Meteor.methods({
             //     type: Object
             // }
         }).validate({ _id });
+
+        choice.votes.push({
+            _id: shortid.generate(),
+            userId: Meteor.userId()
+        });
 
         Polls.update( {
             _id, 

@@ -48,6 +48,18 @@ Meteor.methods({
             userId: choice.userId,
             users: participants
         });
-    }
+    },
+    'events.addParticipant'(eventId, user) {
+        if(!this.userId || !Roles.userIsInRole(this.userId, ['normal-user'])){
+            throw new Meteor.Error('not-authorized');
+        }
+        Events.update({
+            _id: eventId
+        }, {
+            $addToSet: {
+                users: user
+            }
+        });
 
+    }
 });

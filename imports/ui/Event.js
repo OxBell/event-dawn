@@ -13,6 +13,7 @@ export default class Event extends React.Component {
             poll: null,
             choice: null,
             participants: null,
+            participate: false,
             error: ''
         };
     }
@@ -20,10 +21,14 @@ export default class Event extends React.Component {
     componentDidMount() {
         this.eventsTracker = Tracker.autorun(() => {
             Meteor.subscribe('events');
-            const event = Events.findOne({
-                state: 'current'
-            });
             Meteor.subscribe('polls');
+            if(this.props.event) {
+                if(this.props.event.users.indexOf(Meteor.userId()) != -1) {
+                    this.setState({ participate: true });
+                } else {
+                    this.setState({ participate: false });
+                }
+            }
         });
     }
 
@@ -32,7 +37,7 @@ export default class Event extends React.Component {
     }
 
     genereEvent() {
-        if(event = Events.findOne({ state: 'current' })) {
+        if(this.props.event) {
             this.setState({ error: 'Already have an event!'} );
         } else {
             const choices = Polls.findOne({
@@ -48,6 +53,7 @@ export default class Event extends React.Component {
                             this.setState({error : err.error});
                         } else {
                             const participants = res;
+                            this.setState({ participants });
                             Meteor.call('events.insert', choice, participants, (err, res) => {
                                 if (!err) {
                                     const idPoll = Polls.findOne({
@@ -84,6 +90,20 @@ export default class Event extends React.Component {
         }
     }
 
+    addParticipant() {
+        if(this.props.event && !this.state.participate) {
+            Meteor.call('events.addParticipant', this.props.event._id, Meteor.userId(), (err, res) => {
+                if(err){
+                    this.setState({error : err.error});
+                } else {
+                    this.setState({ participate: true });
+                }
+            });
+        } else {
+            this.setState({error : 'You\'re already in the party!'});
+        }
+    }
+
     renderParticipants() {
         return this.props.event.users.map((user) => {
             return <p key={user}>{this.getUserNickname(user)}</p>
@@ -107,6 +127,7 @@ export default class Event extends React.Component {
                 {this.state.error ? <p>{this.state.error}</p> : undefined}
                 <button className='button' onClick={() => this.genereEvent()}>+ Add Event</button> {/* TO DELETE WHEN EVENT AUTO GENERATE */}
                 {this.props.event ? this.renderEvent() : undefined}
+                {this.props.event && !this.state.participate ? <button onClick={this.addParticipant.bind(this)}>Participate</button> : undefined}
             </div>
         );
     }
