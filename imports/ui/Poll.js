@@ -65,7 +65,7 @@ export default class Poll extends React.Component {
             );
         } else if (this.state.poll) {
             return this.state.poll.choices.map((choice) => {
-                return <Choice key={choice._id} choice={choice} poll={this.state.poll._id}/>;
+                return <Choice key={choice._id} choice={choice} poll={this.state.poll}/>;
             });
         }
     }
@@ -74,7 +74,6 @@ export default class Poll extends React.Component {
         return(
             <div>
                 {this.state.error ? <p>{this.state.error}</p> : undefined}
-                <button className='button' onClick={() => this.addPoll()}>+ Add Poll</button> {/* TO DELETE WHEN POLL AUTO GENERATE */}
                 {this.state.poll ? <AddChoice poll={this.state.poll}/> : undefined}
                 {this.renderPoll()}
                 {this.renderChoices()}
