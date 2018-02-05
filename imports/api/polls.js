@@ -30,7 +30,8 @@ Meteor.methods({
         Polls.insert({
             state: 'current',
             date: new Date().getTime(),
-            choices: []
+            choices: [],
+            extend: false
         });
     },
     'polls.addChoice'(_id, choice) {
@@ -51,7 +52,7 @@ Meteor.methods({
 
         choice.votes.push({
             _id: shortid.generate(),
-            userId: Meteor.userId()
+            username: Meteor.user().username
         });
 
         Polls.update( {
@@ -101,27 +102,77 @@ Meteor.methods({
     },
     'polls.getBestChoice'(choices) {
         if(choices.length === 0){
-            return new Meteor.Error('no choice!');
+            throw new Meteor.Error('no choice!');
         } else if(choices.length === 1){
             return choices[0];
         } else if(choices.length > 1){
-            let choice = choices[0];
+            let Bchoice = choices[0];
+            let Bchoices = [Bchoice];
             for(let i=1; i < choices.length; i++) {
-                if(choices[i].votes.length > choice.votes.length){
-                    choice = choices[i];
+                if(choices[i].votes.length >= Bchoice.votes.length){
+                    Bchoices.push(choices[i]);
+                    Bchoice = choices[i];
                 }
             }
-            return choice;
+            return Bchoices;
         }
     },
     'polls.getParticipants'(votes) {
         if(votes.length === 0) {
-            return new Meteor.Error('no participant!');
+            throw new Meteor.Error('no participant!');
         }
         participants = [];
         votes.forEach((vote)=> {
-            participants.push(vote.userId);
+            participants.push(vote.username);
         });
         return participants;
+    },
+    'polls.getOneBestChoice'(choices) {
+        if(choices.length === 0){
+            throw new Meteor.Error('no choice!');
+        } else if(choices.length === 1){
+            return choices[0];
+        } else if(choices.length > 1){
+            let Bchoice = choices[0];
+            for(let i=1; i < choices.length; i++) {
+                if(choices[i].votes.length === Bchoice.votes.length){
+                    Bchoice = choices[i];
+                }
+            }
+            return Bchoice;
+        }
+    },
+    'polls.extend'(choices) {
+        if (Polls.findOne({ state: 'current' }) || Events.findOne({ state: 'current' })){
+            throw new Meteor.Error('Already have current poll or a event already planed!');
+        }
+
+        choices.forEach((choice) => {
+            choice.votes = [];
+        });
+
+        new SimpleSchema({
+            state: {
+                type: String,
+            }
+        }).validate({ state: 'current' });
+        
+        Polls.insert({
+            state: 'current',
+            date: new Date().getTime(),
+            extend: true,
+            choices
+        });
+
+    },
+    'users.addUserRole'() {
+        if(!Meteor.userId()){
+            throw new Meteor.Error('Not authenticate!');
+        }
+        try {
+            Roles.addUsersToRoles(Meteor.userId(), ['normal-user']);
+        } catch (err) {
+            throw new Meteor.Error(500, 'can\'t add role to user', err);
+        }        
     }
 });

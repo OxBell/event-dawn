@@ -23,7 +23,7 @@ export default class Event extends React.Component {
             Meteor.subscribe('events');
             Meteor.subscribe('polls');
             if(this.props.event) {
-                if(this.props.event.users.indexOf(Meteor.userId()) != -1) {
+                if(this.props.event.users.indexOf(Meteor.user().username) != -1) {
                     this.setState({ participate: true });
                 } else {
                     this.setState({ participate: false });
@@ -76,23 +76,9 @@ export default class Event extends React.Component {
         }
     }
 
-    getUserNickname(_id) {
-        Meteor.subscribe('singleUser', _id);
-        if(Meteor.users.find({ _id }).fetch()[0]){
-            return Meteor.users.find({ _id }, {
-                fields: {
-                    'createdAt': 0,
-                    'services': 0,
-                    'emails': 0,
-                    'roles': 0
-                }
-            }).fetch()[0].profile.nickname;
-        }
-    }
-
     addParticipant() {
         if(this.props.event && !this.state.participate) {
-            Meteor.call('events.addParticipant', this.props.event._id, Meteor.userId(), (err, res) => {
+            Meteor.call('events.addParticipant', this.props.event._id, Meteor.user().username, (err, res) => {
                 if(err){
                     this.setState({error : err.error});
                 } else {
@@ -106,14 +92,14 @@ export default class Event extends React.Component {
 
     renderParticipants() {
         return this.props.event.users.map((user) => {
-            return <p key={user}>{this.getUserNickname(user)}</p>
+            return <p key={user}>{user}</p>
         });
     }
 
     renderEvent() {
         return (
             <div>
-                <h1>{this.props.event.name} - manager : {this.getUserNickname(this.props.event.userId)}</h1>
+                <h1>{this.props.event.name} - manager : {this.props.event.username}</h1>
                 <p>Place : {this.props.event.place}</p>
                 <p>Start at {moment(this.props.event.startDate).format('D/M/Y HH:mm')}h, end at {moment(this.props.event.endDate).format('D/M/Y HH:mm')}h ({this.props.event.duration}h)</p>
                 {this.renderParticipants()}

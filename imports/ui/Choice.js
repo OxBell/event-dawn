@@ -10,37 +10,51 @@ export default class Choice extends React.Component {
         super(props);
         this.state = {
             alreadyVote: !!this.props.choice.votes.find((vote) => {
-                return vote.userId === Meteor.userId();
+                return vote.username === Meteor.user().username;
             }),
             error: '',
+            updated: false
         };
     }
 
-    getUserNickname(_id) {
-        Meteor.subscribe('singleUser', _id);
-        // return Meteor.users.find({ _id }).profile.nickname;
-        if(Meteor.users.find({ _id }).fetch()[0]){
-            return Meteor.users.find({ _id }, {
-                fields: {
-                    'createdAt': 0,
-                    'services': 0,
-                    'emails': 0,
-                    'roles': 0
+    componentDidUpdate(prevProps, prevState){
+        if(this.props.poll.extend && !this.state.updated) {
+            this.setState({alreadyVote: !!this.props.choice.votes.find((vote) => {
+                return vote.username === Meteor.user().username;
+            }), updated: true});
+        }
+    }
+
+
+    checkVote() {
+        let voted = false;
+        if(this.props.poll.extend){
+            this.props.poll.choices.forEach((choice) => {
+                if(choice.votes.find((vote) => { return vote.username === Meteor.user().username; })) {
+                    this.setState({ error: 'You can vote for only one choice!' });
+                    voted = true;
+                    setTimeout(() => this.setState({ error: '' }), 1000);
                 }
-            }).fetch()[0].profile.nickname;
+            });
+        } else {
+            this.addVote();
+        }
+        
+        if(this.props.poll.extend && !voted) {
+            this.addVote();
         }
     }
 
     removeVote() {
         if(this.state.alreadyVote) {
             this.props.choice.votes.forEach((elem, i) => {
-                if(elem.userId === Meteor.userId()){
+                if(elem.username === Meteor.user().username){
                     this.props.choice.votes.splice(i,1);
                 }
             });
-            Meteor.call('polls.updateChoice', this.props.poll, this.props.choice, (err, res) => {
+            Meteor.call('polls.updateChoice', this.props.poll._id, this.props.choice, (err, res) => {
                 if (!err) {
-                    this.setState({ alreadyVote: false });
+                    this.setState({ alreadyVote: false, error:'' });
                 } else {
                     this.setState({error : err.error});
                 }
@@ -54,11 +68,11 @@ export default class Choice extends React.Component {
         if(!this.state.alreadyVote) {
             this.props.choice.votes.push({
                 _id: shortid.generate(),
-                userId: Meteor.userId()
+                username: Meteor.user().username
             });
-            Meteor.call('polls.updateChoice', this.props.poll, this.props.choice, (err, res) => {
+            Meteor.call('polls.updateChoice', this.props.poll._id, this.props.choice, (err, res) => {
                 if (!err) {
-                    this.setState({ alreadyVote: true });
+                    this.setState({ alreadyVote: true, error: '' });
                 } else {
                     this.setState({error : err.error});
                 }
@@ -71,7 +85,7 @@ export default class Choice extends React.Component {
     renderVotes() {
         return this.props.choice.votes.map((vote) => {
             return (
-                <p key={vote._id}>{this.getUserNickname(vote.userId)}</p>
+                <p key={vote._id}>{vote.username}</p>
             );
         });
     }
@@ -80,11 +94,12 @@ export default class Choice extends React.Component {
         return (
             <div>
                 <div>
-                    <h4>{this.props.choice.name} by {this.getUserNickname(this.props.choice.userId)}</h4>
+                    <h4>{this.props.choice.name} by {this.props.choice.username}</h4>
                     <p>Début : {moment(this.props.choice.startDate).format('D/M/Y HH:mm')} h</p>
                     <p>Fin : {moment(this.props.choice.endDate).format('D/M/Y HH:mm')} h</p>
                     <p>Lieu : {this.props.choice.place} - durée : {this.props.choice.duration} h</p>
-                    {!this.state.alreadyVote ? <button onClick={this.addVote.bind(this)}>Voter</button> : <button onClick={this.removeVote.bind(this)}>Retirer vote</button>}
+                    {this.state.error ? <p>{this.state.error}</p> : undefined}
+                    {!this.state.alreadyVote ? <button onClick={this.checkVote.bind(this)}>Voter</button> : <button onClick={this.removeVote.bind(this)}>Retirer vote</button>}
                     <p>{this.props.choice.votes.length} vote(s)</p>
                     {this.renderVotes()}
                 </div>

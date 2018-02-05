@@ -38,7 +38,6 @@ export default class Dashboard extends React.Component {
         <PrivateHeader title='Dashboard'/>
         <div className="page-content">
           Dashboard page content.
-          {this.state.event ? undefined : <Event event={this.state.event}/>} {/* TO DELETE WHEN EVENT AUTO GENERATE */}
           {this.state.event ? <Event event={this.state.event}/> : <Poll/>}
         </div>        
       </div>

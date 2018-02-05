@@ -37,7 +37,7 @@ export default class AddChoice extends React.Component {
                 place,
                 startDate,
                 endDate,
-                userId: Meteor.userId(),
+                username: Meteor.user().username,
                 votes: []
             }
                 

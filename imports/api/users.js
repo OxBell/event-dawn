@@ -3,18 +3,19 @@ import SimpleSchema from 'simpl-schema';
 import { Accounts } from 'meteor/accounts-base';
 import { Roles } from 'meteor/alanning:roles';
 
-if(Meteor.isServer) {
-  Meteor.publish('singleUser', function (userId) {
-    return Meteor.users.find({ _id: userId }, {
-      fields: {
-        'createdAt': 0,
-        'services': 0,
-        'emails': 0,
-        'roles': 0
-      }
-    });
-  });
-}
+// if(Meteor.isServer) {
+//   console.log('isServer');  
+//   Meteor.publish('otherUser', function() {
+//     return Meteor.users.find({}, {
+//       fields: {
+//         'createdAt': 0,
+//         'services': 0,
+//         'emails': 0,
+//         'roles': 0
+//       }
+//     });
+//   });
+// }
 
 Accounts.validateNewUser((user) => {
   const email = user.emails[0].address;
@@ -29,12 +30,12 @@ Accounts.validateNewUser((user) => {
   return true;
 });
 
-Meteor.methods({
-  'users.addRole'(_id) {
-    try {
-      Roles.addUsersToRoles(_id, ['normal-user']);
-    } catch (err) {
-      throw new Meteor.Error(500, 'can\'t add role to user', err);
-    }
-  }
-});
+// Meteor.methods({
+//   'users.addRole'(_id) {
+//     try {
+//       Roles.addUsersToRoles(_id, ['normal-user']);
+//     } catch (err) {
+//       throw new Meteor.Error(500, 'can\'t add role to user', err);
+//     }
+//   }
+// });
