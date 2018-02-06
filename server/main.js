@@ -10,7 +10,7 @@ Meteor.startup(() => {
   // GENERATE POLL
 
   // schedule.scheduleJob({hour: 05, dayOfWeek: 1}, Meteor.bindEnvironment(function(){
-  schedule.scheduleJob({hour: 20, minute: 32, dayOfWeek: 1}, Meteor.bindEnvironment(function(){
+  schedule.scheduleJob({hour: 17, minute: 25, dayOfWeek: 2}, Meteor.bindEnvironment(function(){
     Meteor.call('polls.insert', (err, res) => {
       if (!err) {
       } else {
@@ -21,18 +21,21 @@ Meteor.startup(() => {
 
   // GENERATE EVENT
   // schedule.scheduleJob({hour: 20, dayOfWeek: 3}, Meteor.bindEnvironment(function(){
-    schedule.scheduleJob({hour: 20, minute: 33, dayOfWeek: 1}, Meteor.bindEnvironment(function(){
+    schedule.scheduleJob({hour: 17, minute: 26, dayOfWeek: 2}, Meteor.bindEnvironment(function(){
       Meteor.call('polls.getBestChoice', Polls.findOne({ state: 'current' }).choices, (err, res) => {
-        if(err) {
+        if(err) { 
           console.log(err.message);
         } else {
           let choices = res;
-          Meteor.call('polls.getParticipants', res[0].votes, (err, res) => {
+          if(Array.isArray(res)) {
+            choices = res[0];
+          }
+          Meteor.call('polls.getParticipants', choices.votes, (err, res) => {
             if(err) {
               console.log(err.message);
             } else {
-              if(choices.length === 1) {
-                Meteor.call('events.create', choices[0], res, (err, res) => {
+              if(!Array.isArray(choices)) {
+                Meteor.call('events.create', choices, res, (err, res) => {
                   if (!err) {
                     Meteor.call('polls.finish', Polls.findOne({state: 'current'})._id, (err, res) => {
                       if (!err) {

@@ -96,12 +96,21 @@ export default class Event extends React.Component {
         });
     }
 
+    renderOptions() {
+        return this.props.event.options.map((option) => {
+            return (
+                <p key={option._id}>{option.label} : {option.value}</p>
+            );
+        });
+    }
+
     renderEvent() {
         return (
             <div>
                 <h1>{this.props.event.name} - manager : {this.props.event.username}</h1>
                 <p>Place : {this.props.event.place}</p>
                 <p>Start at {moment(this.props.event.startDate).format('D/M/Y HH:mm')}h, end at {moment(this.props.event.endDate).format('D/M/Y HH:mm')}h ({this.props.event.duration}h)</p>
+                {this.props.event.options && this.props.event.options.length > 0 ? this.renderOptions() : undefined}
                 {this.renderParticipants()}
             </div>
         );
@@ -111,7 +120,6 @@ export default class Event extends React.Component {
         return(
             <div>
                 {this.state.error ? <p>{this.state.error}</p> : undefined}
-                <button className='button' onClick={() => this.genereEvent()}>+ Add Event</button> {/* TO DELETE WHEN EVENT AUTO GENERATE */}
                 {this.props.event ? this.renderEvent() : undefined}
                 {this.props.event && !this.state.participate ? <button onClick={this.addParticipant.bind(this)}>Participate</button> : undefined}
             </div>

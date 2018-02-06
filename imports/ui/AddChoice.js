@@ -14,6 +14,8 @@ export default class AddChoice extends React.Component {
             error: '',
             name: '',
             place: '',
+            options: [],
+            key_option: 1,
             startDate: moment(new Date()).format('Y-MM-DDTHH:mm'),
             endDate: moment(new Date()).format('Y-MM-DDTHH:mm')
         };
@@ -30,6 +32,15 @@ export default class AddChoice extends React.Component {
             const { name, place } = this.state; // const name = this.state.name, const duration = this.state.duration, const place = this.state.place
             const startDate = new Date(this.state.startDate).getTime();
             const endDate = new Date(this.state.endDate).getTime();
+            let choice_options = [];
+
+            if(this.state.options.length > 0){
+                this.state.options.forEach((option) => {
+                    if(this.refs[option].value) {
+                        choice_options.push({_id: shortid.generate(),label: this.refs['label-'+option].value, value: this.refs[option].value});
+                    }
+                });
+            }
             const choice =  {
                 _id: shortid.generate(),
                 name,
@@ -38,7 +49,8 @@ export default class AddChoice extends React.Component {
                 startDate,
                 endDate,
                 username: Meteor.user().username,
-                votes: []
+                votes: [],
+                options: choice_options
             }
                 
             Meteor.call('polls.addChoice', this.props.poll._id, choice, (err, res) => {
@@ -84,8 +96,27 @@ export default class AddChoice extends React.Component {
             name: '', 
             place: '', 
             error: '',
+            options: [],
+            key_option: 1
         });
     }
+
+    addOption() {
+        this.state.options.push(`option-${this.state.key_option}`);
+        this.setState({options: this.state.options, key_option: this.state.key_option+1});
+        console.log(this.state.options);
+        // this.state.options.map(option => console.log(option));
+    }
+
+    removeOption(option) {
+        this.state.options.forEach((elem, i) => {
+            if(elem === option){
+                this.state.options.splice(i,1);
+            }
+        });
+        this.setState({options: this.state.options});
+    }
+
 
     render() {
         return(
@@ -133,6 +164,16 @@ export default class AddChoice extends React.Component {
                             placeholder="Place"
                             onChange={this.onPlaceChange.bind(this)} 
                             value={this.state.place}/>
+
+                            {this.state.options.map(option => 
+                                <div key={option}>
+                                    <input type="text" ref={"label-"+option} placeholder="Option Label"/>
+                                    <button type="button" onClick={this.removeOption.bind(this, option)}>X</button>
+                                    <input type="text" ref={option} placeholder="Option"/>
+                                </div>
+                            )}
+
+                        <button type="button" className="button button--secondary" onClick={this.addOption.bind(this)}>Add Option</button>
                         <button className='button'>Add Choice</button>
                         <button type="button" className="button button--secondary" onClick={this.handleModalClose.bind(this)}>Cancel</button>
                     </form>
