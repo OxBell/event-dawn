@@ -30,9 +30,12 @@ export default class Signup extends React.Component {
           if(err){
             console.log('error', err);
             this.setState({error : err.error});
-          } else {
-            console.log('no error2');
-            
+          }
+        });
+        Meteor.call('users.addUserRoleAdmin', (err, res) => {
+          if(err){
+            console.log('error', err);
+            this.setState({error : err.error});
           }
         });
       }

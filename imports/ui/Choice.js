@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import shortid from 'shortid';
 import Button from 'material-ui/Button/Button';
+import { Roles } from 'meteor/alanning:roles';
 
 export default class Choice extends React.Component {
     constructor(props){
@@ -23,6 +24,20 @@ export default class Choice extends React.Component {
                 return vote.username === Meteor.user().username;
             }), updated: true});
         }
+    }
+
+    removeChoice() {
+        this.props.poll.choices.forEach((choice, i) => {
+            if(choice._id === this.props.choice._id) {
+                console.log(choice, i);
+                this.props.poll.choices.splice(i,1);
+            }
+        });
+        Meteor.call('polls.updateChoices', this.props.poll._id, this.props.poll.choices, (err, res) => {
+            if (err) {
+                this.setState({error : err.error});
+            }
+        });
     }
 
 
@@ -103,12 +118,13 @@ export default class Choice extends React.Component {
             <div>
                 <div>
                     <h4>{this.props.choice.name} by {this.props.choice.username}</h4>
-                    <p>Début : {moment(this.props.choice.startDate).format('D/M/Y HH:mm')} h</p>
-                    <p>Fin : {moment(this.props.choice.endDate).format('D/M/Y HH:mm')} h</p>
-                    <p>Lieu : {this.props.choice.place} - durée : {this.props.choice.duration} h</p>
+                    <p>Start at : {moment(this.props.choice.startDate).format('D/M/Y HH:mm')} h</p>
+                    <p>End at : {moment(this.props.choice.endDate).format('D/M/Y HH:mm')} h</p>
+                    <p>Place : {this.props.choice.place} - duration : {this.props.choice.duration} h</p>
                     {this.props.choice.options && this.props.choice.options.length > 0 ? this.renderOptions() : undefined}
                     {this.state.error ? <p>{this.state.error}</p> : undefined}
-                    {!this.state.alreadyVote ? <button onClick={this.checkVote.bind(this)}>Voter</button> : <button onClick={this.removeVote.bind(this)}>Retirer vote</button>}
+                    {!this.state.alreadyVote ? <button onClick={this.checkVote.bind(this)}>Vote</button> : <button onClick={this.removeVote.bind(this)}>Remove vote</button>}
+                    {Roles.userIsInRole(Meteor.userId(), ['admin']) ? <button onClick={this.removeChoice.bind(this)}>Remove Choice</button> : undefined}
                     <p>{this.props.choice.votes.length} vote(s)</p>
                     {this.renderVotes()}
                 </div>

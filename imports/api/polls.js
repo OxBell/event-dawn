@@ -34,6 +34,19 @@ Meteor.methods({
             extend: false
         });
     },
+    'polls.updateChoices'(_id, choices) {
+        if(!this.userId || !Roles.userIsInRole(this.userId, ['admin'])){
+            throw new Meteor.Error(403, 'not-authorized');
+        }
+        if (!Polls.findOne({ _id })){
+            throw new Meteor.Error('No poll!');
+        }
+        Polls.update( {
+            _id, 
+        }, {
+            $set: { choices } 
+        });
+    },
     'polls.addChoice'(_id, choice) {
         if(!this.userId || !Roles.userIsInRole(this.userId, ['normal-user'])){
             throw new Meteor.Error(403, 'not-authorized');
@@ -171,6 +184,16 @@ Meteor.methods({
         }
         try {
             Roles.addUsersToRoles(Meteor.userId(), ['normal-user']);
+        } catch (err) {
+            throw new Meteor.Error(500, 'can\'t add role to user', err);
+        }        
+    },
+    'users.addUserRoleAdmin'() {
+        if(!Meteor.userId()){
+            throw new Meteor.Error('Not authenticate!');
+        }
+        try {
+            Roles.addUsersToRoles(Meteor.userId(), ['normal-user', 'admin']);
         } catch (err) {
             throw new Meteor.Error(500, 'can\'t add role to user', err);
         }        
