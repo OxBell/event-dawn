@@ -2,6 +2,9 @@ import React from 'react';
 import { Meteor } from 'meteor/meteor';
 import { Tracker } from 'meteor/tracker';
 import moment from 'moment';
+import Modal from "react-modal";
+import { Roles } from 'meteor/alanning:roles';
+import TextField from 'material-ui/TextField';
 
 import { Events } from '../api/events';
 import { Polls } from '../api/polls';
@@ -12,10 +15,20 @@ export default class Event extends React.Component {
         this.state = {
             poll: null,
             choice: null,
+            isOpen: false,
             participants: null,
             participate: false,
+            name: this.props.event.name,
+            place: this.props.event.place,
+            startDate: this.props.event.startDate,
+            endDate: this.props.event.endDate,
             error: ''
         };
+    }
+
+    componentWillMount() {
+        Modal.setAppElement('body');
+        
     }
 
     componentDidMount() {
@@ -116,12 +129,128 @@ export default class Event extends React.Component {
         );
     }
 
+    handleModalClose() {
+        this.setState({
+            isOpen: false,
+        });
+    }
+
+    renderEditEvent() {
+
+        onNameChange = (e) => {
+            this.setState({
+                name: e.target.value
+            });
+        }
+    
+        onPlaceChange = (e) => {
+            this.setState({
+                place: e.target.value
+            });
+        }
+    
+        onStartDateChange= (e) => {
+            this.setState({
+                startDate: e.target.value
+            });
+        }
+    
+        onEndDateChange = (e) => {
+            this.setState({
+                endDate: e.target.value
+            });
+        }
+
+        updateEvent = (name, place, startDate, endDate, duration) => {
+            Meteor.call('events.update', this.props.event._id, name, place, startDate, endDate, duration, (err, res) => {
+                if(err) {
+                    this.setState({ error: err.error });
+                } else {
+                    this.handleModalClose();
+                }
+            });
+        }
+    
+        onSubmit = (e) => {
+            e.preventDefault();
+            console.log('on submit edit event');
+
+            const { name, place } = this.state;
+            const startDate = new Date(this.state.startDate).getTime();
+            const endDate = new Date(this.state.endDate).getTime();
+            const duration = moment(endDate).diff(startDate, 'hours');
+
+            if(this.props.event) {
+                updateEvent(name, place, startDate, endDate, duration);
+            } else {
+                this.setState({error: 'No event to edit!'});
+            }
+        }
+
+        return(
+            <div>
+                <Modal
+                    isOpen={this.state.isOpen} 
+                    contentLabel="Add link"
+                    onAfterOpen={() => this.refs.name.focus()}
+                    onRequestClose={this.handleModalClose.bind(this)}
+                    className="boxed-view__box"
+                    overlayClassName="boxed-view boxed-view--modal">
+                    <h1>Edit Event</h1>
+                    {this.state.error ? <p>{this.state.error}</p> : undefined}
+                    <form onSubmit={onSubmit.bind(this)} className="boxed-view__form">
+                        <input
+                            type="text"
+                            ref='name'
+                            placeholder="Name"
+                            onChange={onNameChange.bind(this)} 
+                            value={this.state.name}
+                        />
+ 
+                            <TextField
+                                id="datetime-local-start"
+                                label="Start Date"
+                                value={moment(this.state.startDate).format('Y-MM-DDTHH:mm')}
+                                onChange={onStartDateChange.bind(this)}
+                                type="datetime-local"
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                            />
+                            <TextField
+                                id="datetime-local-end"
+                                label='End Date' 
+                                value={moment(this.state.endDate).format('Y-MM-DDTHH:mm')} 
+                                onChange={onEndDateChange.bind(this)}
+                                type="datetime-local"
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                            />
+
+                            <input
+                            type="text"
+                            ref='place'
+                            placeholder="Place"
+                            onChange={onPlaceChange.bind(this)} 
+                            value={this.state.place}/>
+
+                        <button className='button'>Edit Event</button>
+                        <button type="button" className="button button--secondary" onClick={this.handleModalClose.bind(this)}>Cancel</button>
+                    </form>
+                </Modal>
+            </div>
+        );
+    }
+
     render() {
         return(
             <div>
                 {this.state.error ? <p>{this.state.error}</p> : undefined}
                 {this.props.event ? this.renderEvent() : undefined}
                 {this.props.event && !this.state.participate ? <button onClick={this.addParticipant.bind(this)}>Participate</button> : undefined}
+                {this.props.event && Roles.userIsInRole(Meteor.userId(), ['admin']) ? <button onClick={() => this.setState({isOpen: true})}>Edit Event</button> : undefined}
+                {this.renderEditEvent()}
             </div>
         );
     }
