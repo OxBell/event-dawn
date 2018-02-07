@@ -10,7 +10,7 @@ Meteor.startup(() => {
   // GENERATE POLL
 
   // schedule.scheduleJob({hour: 05, dayOfWeek: 1}, Meteor.bindEnvironment(function(){
-  schedule.scheduleJob({hour: 17, minute: 25, dayOfWeek: 2}, Meteor.bindEnvironment(function(){
+  schedule.scheduleJob({hour: 15, minute: 02, dayOfWeek: 3}, Meteor.bindEnvironment(function(){
     Meteor.call('polls.insert', (err, res) => {
       if (!err) {
       } else {
@@ -21,7 +21,7 @@ Meteor.startup(() => {
 
   // GENERATE EVENT
   // schedule.scheduleJob({hour: 20, dayOfWeek: 3}, Meteor.bindEnvironment(function(){
-    schedule.scheduleJob({hour: 17, minute: 26, dayOfWeek: 2}, Meteor.bindEnvironment(function(){
+    schedule.scheduleJob({hour: 15, minute: 00, dayOfWeek: 3}, Meteor.bindEnvironment(function(){
       Meteor.call('polls.getBestChoice', Polls.findOne({ state: 'current' }).choices, (err, res) => {
         if(err) { 
           console.log(err.message);

@@ -23,6 +23,30 @@ export default class AddChoice extends React.Component {
 
     componentWillMount() {
         Modal.setAppElement('body');
+        
+    }
+
+    insertChoice(name, place, startDate, endDate, options) {
+        const choice =  {
+            _id: shortid.generate(),
+            name,
+            duration: moment(endDate).diff(startDate, 'hours'),
+            place,
+            startDate,
+            endDate,
+            username: Meteor.user().username,
+            votes: [],
+            options
+        }
+            
+        Meteor.call('polls.addChoice', this.props.poll._id, choice, (err, res) => {
+            if (!err) {
+                this.handleModalClose();
+            } else {
+                this.setState({error: err.reason });
+            }
+
+        });
     }
 
     onSubmit(e) {
@@ -36,31 +60,17 @@ export default class AddChoice extends React.Component {
 
             if(this.state.options.length > 0){
                 this.state.options.forEach((option) => {
-                    if(this.refs[option].value) {
+                    if(this.refs[option].value && this.refs['label-'+option].value) {
                         choice_options.push({_id: shortid.generate(),label: this.refs['label-'+option].value, value: this.refs[option].value});
+                        this.insertChoice(name, place, startDate, endDate, choice_options);
+                    } else {
+                        this.setState({error: 'Options must be enter!'});
                     }
                 });
+            } else {
+                this.insertChoice(name, place, startDate, endDate, null);
             }
-            const choice =  {
-                _id: shortid.generate(),
-                name,
-                duration: moment(endDate).diff(startDate, 'hours'),
-                place,
-                startDate,
-                endDate,
-                username: Meteor.user().username,
-                votes: [],
-                options: choice_options
-            }
-                
-            Meteor.call('polls.addChoice', this.props.poll._id, choice, (err, res) => {
-                if (!err) {
-                    this.handleModalClose();
-                } else {
-                    this.setState({error: err.reason });
-                }
-    
-            });
+            
         } else {
             this.setState({error: 'No poll to add the choice!' });
         }
@@ -104,8 +114,6 @@ export default class AddChoice extends React.Component {
     addOption() {
         this.state.options.push(`option-${this.state.key_option}`);
         this.setState({options: this.state.options, key_option: this.state.key_option+1});
-        console.log(this.state.options);
-        // this.state.options.map(option => console.log(option));
     }
 
     removeOption(option) {
@@ -116,6 +124,7 @@ export default class AddChoice extends React.Component {
         });
         this.setState({options: this.state.options});
     }
+
 
 
     render() {
@@ -138,6 +147,7 @@ export default class AddChoice extends React.Component {
                             placeholder="Name"
                             onChange={this.onNameChange.bind(this)} 
                             value={this.state.name}/>
+ 
                             <TextField
                                 id="datetime-local-start"
                                 label="Start Date"
@@ -158,6 +168,7 @@ export default class AddChoice extends React.Component {
                                     shrink: true,
                                 }}
                             />
+
                             <input
                             type="text"
                             ref='place'
