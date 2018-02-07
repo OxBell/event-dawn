@@ -90,6 +90,14 @@ export default class Choice extends React.Component {
         });
     }
 
+    renderOptions() {
+        return this.props.choice.options.map((option) => {
+            return (
+                <p key={option._id}>{option.label} : {option.value}</p>
+            );
+        });
+    }
+
     render() {
         return (
             <div>
@@ -98,6 +106,7 @@ export default class Choice extends React.Component {
                     <p>Début : {moment(this.props.choice.startDate).format('D/M/Y HH:mm')} h</p>
                     <p>Fin : {moment(this.props.choice.endDate).format('D/M/Y HH:mm')} h</p>
                     <p>Lieu : {this.props.choice.place} - durée : {this.props.choice.duration} h</p>
+                    {this.props.choice.options && this.props.choice.options.length > 0 ? this.renderOptions() : undefined}
                     {this.state.error ? <p>{this.state.error}</p> : undefined}
                     {!this.state.alreadyVote ? <button onClick={this.checkVote.bind(this)}>Voter</button> : <button onClick={this.removeVote.bind(this)}>Retirer vote</button>}
                     <p>{this.props.choice.votes.length} vote(s)</p>

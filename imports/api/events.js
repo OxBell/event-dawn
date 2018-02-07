@@ -85,7 +85,8 @@ Meteor.methods({
             name: choice.name,
             duration: choice.duration,
             username: choice.username,
-            users: participants
+            users: participants,
+            options: choice.options
         });
     },
     'events.addParticipant'(eventId, user) {

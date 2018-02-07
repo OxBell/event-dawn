@@ -14,6 +14,8 @@ export default class AddChoice extends React.Component {
             error: '',
             name: '',
             place: '',
+            options: [],
+            key_option: 1,
             startDate: moment(new Date()).format('Y-MM-DDTHH:mm'),
             endDate: moment(new Date()).format('Y-MM-DDTHH:mm')
         };
@@ -21,6 +23,30 @@ export default class AddChoice extends React.Component {
 
     componentWillMount() {
         Modal.setAppElement('body');
+        
+    }
+
+    insertChoice(name, place, startDate, endDate, options) {
+        const choice =  {
+            _id: shortid.generate(),
+            name,
+            duration: moment(endDate).diff(startDate, 'hours'),
+            place,
+            startDate,
+            endDate,
+            username: Meteor.user().username,
+            votes: [],
+            options
+        }
+            
+        Meteor.call('polls.addChoice', this.props.poll._id, choice, (err, res) => {
+            if (!err) {
+                this.handleModalClose();
+            } else {
+                this.setState({error: err.reason });
+            }
+
+        });
     }
 
     onSubmit(e) {
@@ -30,25 +56,21 @@ export default class AddChoice extends React.Component {
             const { name, place } = this.state; // const name = this.state.name, const duration = this.state.duration, const place = this.state.place
             const startDate = new Date(this.state.startDate).getTime();
             const endDate = new Date(this.state.endDate).getTime();
-            const choice =  {
-                _id: shortid.generate(),
-                name,
-                duration: moment(endDate).diff(startDate, 'hours'),
-                place,
-                startDate,
-                endDate,
-                username: Meteor.user().username,
-                votes: []
+            let choice_options = [];
+
+            if(this.state.options.length > 0){
+                this.state.options.forEach((option) => {
+                    if(this.refs[option].value && this.refs['label-'+option].value) {
+                        choice_options.push({_id: shortid.generate(),label: this.refs['label-'+option].value, value: this.refs[option].value});
+                        this.insertChoice(name, place, startDate, endDate, choice_options);
+                    } else {
+                        this.setState({error: 'Options must be enter!'});
+                    }
+                });
+            } else {
+                this.insertChoice(name, place, startDate, endDate, null);
             }
-                
-            Meteor.call('polls.addChoice', this.props.poll._id, choice, (err, res) => {
-                if (!err) {
-                    this.handleModalClose();
-                } else {
-                    this.setState({error: err.reason });
-                }
-    
-            });
+            
         } else {
             this.setState({error: 'No poll to add the choice!' });
         }
@@ -84,8 +106,26 @@ export default class AddChoice extends React.Component {
             name: '', 
             place: '', 
             error: '',
+            options: [],
+            key_option: 1
         });
     }
+
+    addOption() {
+        this.state.options.push(`option-${this.state.key_option}`);
+        this.setState({options: this.state.options, key_option: this.state.key_option+1});
+    }
+
+    removeOption(option) {
+        this.state.options.forEach((elem, i) => {
+            if(elem === option){
+                this.state.options.splice(i,1);
+            }
+        });
+        this.setState({options: this.state.options});
+    }
+
+
 
     render() {
         return(
@@ -107,6 +147,7 @@ export default class AddChoice extends React.Component {
                             placeholder="Name"
                             onChange={this.onNameChange.bind(this)} 
                             value={this.state.name}/>
+ 
                             <TextField
                                 id="datetime-local-start"
                                 label="Start Date"
@@ -127,12 +168,23 @@ export default class AddChoice extends React.Component {
                                     shrink: true,
                                 }}
                             />
+
                             <input
                             type="text"
                             ref='place'
                             placeholder="Place"
                             onChange={this.onPlaceChange.bind(this)} 
                             value={this.state.place}/>
+
+                            {this.state.options.map(option => 
+                                <div key={option}>
+                                    <input type="text" ref={"label-"+option} placeholder="Option Label"/>
+                                    <button type="button" onClick={this.removeOption.bind(this, option)}>X</button>
+                                    <input type="text" ref={option} placeholder="Option"/>
+                                </div>
+                            )}
+
+                        <button type="button" className="button button--secondary" onClick={this.addOption.bind(this)}>Add Option</button>
                         <button className='button'>Add Choice</button>
                         <button type="button" className="button button--secondary" onClick={this.handleModalClose.bind(this)}>Cancel</button>
                     </form>

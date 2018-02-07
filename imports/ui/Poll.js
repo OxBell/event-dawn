@@ -50,7 +50,7 @@ export default class Poll extends React.Component {
         }
         return (
             <div>
-                <h2>Poll</h2>
+                <h2>Poll {this.state.poll.extend ? '(extend)' : undefined}</h2>
                 <p>Semaine {moment(this.state.poll.date).format('w')}</p>
             </div>
         );
@@ -74,7 +74,7 @@ export default class Poll extends React.Component {
         return(
             <div>
                 {this.state.error ? <p>{this.state.error}</p> : undefined}
-                {this.state.poll ? <AddChoice poll={this.state.poll}/> : undefined}
+                {this.state.poll && !this.state.poll.extend ? <AddChoice poll={this.state.poll}/> : undefined}
                 {this.renderPoll()}
                 {this.renderChoices()}
             </div>
