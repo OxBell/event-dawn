@@ -52,7 +52,7 @@ Meteor.methods({
             options: choice.options
         });
     },
-    'events.update'(_id, name, place, startDate, endDate, duration) {
+    'events.update'(_id, name, place, startDate, endDate, duration, options) {
         if(!this.userId || !Roles.userIsInRole(this.userId, ['admin'])){
             throw new Meteor.Error(403, 'not-authorized');
         }
@@ -67,7 +67,9 @@ Meteor.methods({
                 name,
                 place,
                 startDate,
-                endDate, duration
+                endDate, 
+                duration,
+                options
             }
         });
     },

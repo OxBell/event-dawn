@@ -22,7 +22,9 @@ export default class Event extends React.Component {
             place: this.props.event.place,
             startDate: this.props.event.startDate,
             endDate: this.props.event.endDate,
-            error: ''
+            options: this.props.event.options,
+            error: '',
+            errorModal: ''
         };
     }
 
@@ -41,6 +43,7 @@ export default class Event extends React.Component {
                 } else {
                     this.setState({ participate: false });
                 }
+                this.setState( {options: Events.findOne({state: 'current'}).options} );
             }
         });
     }
@@ -132,6 +135,7 @@ export default class Event extends React.Component {
     handleModalClose() {
         this.setState({
             isOpen: false,
+            options: this.props.event.options
         });
     }
 
@@ -161,8 +165,30 @@ export default class Event extends React.Component {
             });
         }
 
-        updateEvent = (name, place, startDate, endDate, duration) => {
-            Meteor.call('events.update', this.props.event._id, name, place, startDate, endDate, duration, (err, res) => {
+        onOptionLabelChange = (e) => {
+            let options = [];
+            this.state.options.forEach(option => {                
+                if(option._id === e.target.id.slice(5)) {
+                    option.label = e.target.value;
+                }
+                options.push(option);
+            });
+            this.setState({ options });
+        }
+    
+        onOptionChange = (e) => {
+            let options = [];
+            this.state.options.forEach(option => {                
+                if(option._id === e.target.id.slice(5)) {
+                    option.value = e.target.value;
+                }
+                options.push(option);
+            });
+            this.setState({ options });
+        }
+
+        updateEvent = (name, place, startDate, endDate, duration, options) => {
+            Meteor.call('events.update', this.props.event._id, name, place, startDate, endDate, duration, options, (err, res) => {
                 if(err) {
                     this.setState({ error: err.error });
                 } else {
@@ -173,18 +199,27 @@ export default class Event extends React.Component {
     
         onSubmit = (e) => {
             e.preventDefault();
-            console.log('on submit edit event');
 
-            const { name, place } = this.state;
+            let errMod = false;
+
+            const { name, place, options } = this.state;
             const startDate = new Date(this.state.startDate).getTime();
             const endDate = new Date(this.state.endDate).getTime();
             const duration = moment(endDate).diff(startDate, 'hours');
-
             if(this.props.event) {
-                updateEvent(name, place, startDate, endDate, duration);
+                this.state.options.forEach((option) => {
+                    if(!this.refs[option._id].value && !this.refs['label-'+option._id].value) {
+                        errMod = true;
+                    }
+                });
+                if(!errMod) {
+                    updateEvent(name, place, startDate, endDate, duration , options);
+                } else {
+                    this.setState({errorModal: 'Options must be enter!'});
+                }
             } else {
                 this.setState({error: 'No event to edit!'});
-            }
+            }            
         }
 
         return(
@@ -197,7 +232,7 @@ export default class Event extends React.Component {
                     className="boxed-view__box"
                     overlayClassName="boxed-view boxed-view--modal">
                     <h1>Edit Event</h1>
-                    {this.state.error ? <p>{this.state.error}</p> : undefined}
+                    {this.state.errorModal ? <p>{this.state.errorModal}</p> : undefined}
                     <form onSubmit={onSubmit.bind(this)} className="boxed-view__form">
                         <input
                             type="text"
@@ -229,11 +264,28 @@ export default class Event extends React.Component {
                             />
 
                             <input
-                            type="text"
-                            ref='place'
-                            placeholder="Place"
-                            onChange={onPlaceChange.bind(this)} 
-                            value={this.state.place}/>
+                                type="text"
+                                ref='place'
+                                placeholder="Place"
+                                onChange={onPlaceChange.bind(this)} 
+                                value={this.state.place}
+                            />
+
+                            {this.state.options.map(option => 
+                                <div key={option._id ? option._id : this.state.options.length+1}>
+                                    <input id={'label'+option._id} type="text" ref={"label-"+option._id} 
+                                        placeholder="Option Label"
+                                        value={option.label}
+                                        onChange={onOptionLabelChange.bind(this)}
+                                    />
+                                    {/* <button type="button" onClick={this.removeOption.bind(this, option)}>X</button> */}
+                                    <input id={'value'+option._id} type="text" ref={option._id} 
+                                        placeholder="Option"
+                                        value={option.value}
+                                        onChange={onOptionChange.bind(this)}
+                                    />
+                                </div>
+                            )}
 
                         <button className='button'>Edit Event</button>
                         <button type="button" className="button button--secondary" onClick={this.handleModalClose.bind(this)}>Cancel</button>
