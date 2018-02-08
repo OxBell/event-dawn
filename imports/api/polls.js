@@ -197,5 +197,11 @@ Meteor.methods({
         } catch (err) {
             throw new Meteor.Error(500, 'can\'t add role to user', err);
         }        
-    }
+    },
+    'users.getCurrentUser'() {
+        if(!Meteor.userId()) {
+          throw new Meteor.Error(403, 'not authorized');
+        } 
+        return Meteor.user();
+      }
 });
