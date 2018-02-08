@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router';
 import { Roles } from 'meteor/alanning:roles';
 import { Accounts } from 'meteor/accounts-base';
+import { UserStatus } from 'meteor/mizzao:user-status';
 
 export default class Signup extends React.Component {
   constructor(props){
@@ -29,15 +30,15 @@ export default class Signup extends React.Component {
         Meteor.call('users.addUserRole', (err, res) => {
           if(err){
             console.log('error', err);
-            this.setState({error : err.error});
+            this.setState({error : err.message});
           }
         });
-        Meteor.call('users.addUserRoleAdmin', (err, res) => {
-          if(err){
-            console.log('error', err);
-            this.setState({error : err.error});
-          }
-        });
+        // Meteor.call('users.addUserRoleAdmin', (err, res) => {
+        //   if(err){
+        //     console.log('error', err);
+        //     this.setState({error : err.message});
+        //   }
+        // });
       }
     });
   }

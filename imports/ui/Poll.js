@@ -34,7 +34,7 @@ export default class Poll extends React.Component {
         Meteor.call('polls.insert', (err, res) => {
         if (!err) {
         } else {
-            this.setState({error : err.error});
+            this.setState({error : err.message});
         }
 
         });

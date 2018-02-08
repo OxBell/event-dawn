@@ -6,7 +6,8 @@ import Modal from "react-modal";
 import { Roles } from 'meteor/alanning:roles';
 import TextField from 'material-ui/TextField';
 import shortid from 'shortid';
-
+import { UserStatus } from 'meteor/mizzao:user-status';
+import { Accounts } from 'meteor/accounts-base';
 
 import { Events } from '../api/events';
 import { Polls } from '../api/polls';
@@ -18,6 +19,7 @@ export default class Event extends React.Component {
             poll: null,
             choice: null,
             isOpen: false,
+            userStatus: null,
             optionIsOpen: false,
             participants: null,
             participate: false,
@@ -30,7 +32,7 @@ export default class Event extends React.Component {
             error: '',
             errorModal: '',
             errorModalOption: '',
-            status: ''
+            status: '',
         };
     }
 
@@ -43,6 +45,7 @@ export default class Event extends React.Component {
         this.eventsTracker = Tracker.autorun(() => {
             Meteor.subscribe('events');
             Meteor.subscribe('polls');
+            Meteor.subscribe('userStatus');
             if(this.props.event) {
                 if(this.props.event.users.indexOf(Meteor.user().username) != -1) {
                     this.setState({ participate: true });
@@ -61,7 +64,7 @@ export default class Event extends React.Component {
         if(this.props.event && !this.state.participate) {
             Meteor.call('events.addParticipant', this.props.event._id, Meteor.user().username, (err, res) => {
                 if(err){
-                    this.setState({error : err.error});
+                    this.setState({error : err.message});
                 } else {
                     this.setState({ participate: true });
                 }
@@ -103,7 +106,7 @@ export default class Event extends React.Component {
                 if(this.state.status == 'edit'){
                     Meteor.call('events.updateOption', this.props.event._id, {_id :idOption, label, value}, (err, res) => {
                         if(err) {
-                            this.setState({errorModalOption: err.error});
+                            this.setState({errorModalOption: err.message});
                         } else {
                             this.setState({optionIsOpen: false});
                         }
@@ -111,7 +114,7 @@ export default class Event extends React.Component {
                 } else {
                     Meteor.call('events.addOption', this.props.event._id, {_id :idOption, label, value}, (err, res) => {
                         if(err) {
-                            this.setState({errorModalOption: err.error});
+                            this.setState({errorModalOption: err.message});
                         } else {
                             this.setState({optionIsOpen: false});
                         }
@@ -130,6 +133,7 @@ export default class Event extends React.Component {
                 onRequestClose={this.handleModalOptionClose.bind(this)}
                 className="boxed-view__box"
                 overlayClassName="boxed-view boxed-view--modal">
+                {this.state.errorModalOption}
                 {this.state.status == 'edit' ? <h1>Edit Option</h1> : <h1>Add Option</h1>}
                 <form onSubmit={onSubmitOption.bind(this)} className="boxed-view__form">
                     <input type="text" value={this.state.labelOption} onChange={onLabelOptionChange.bind(this)} ref={"label-"+option._id} placeholder="Option Label"/>
@@ -153,7 +157,7 @@ export default class Event extends React.Component {
     deleteOption(option) {
         Meteor.call('events.removeOption', this.props.event._id, option, (err, res) => {
             if (err) {
-                this.setState({error : err.error});
+                this.setState({error : err.message});
             }
         });
     }
@@ -184,7 +188,7 @@ export default class Event extends React.Component {
                 <h1>{this.props.event.name} - manager : {this.props.event.username}</h1>
                 <p>Place : {this.props.event.place}</p>
                 <p>Start at {moment(this.props.event.startDate).format('D/M/Y HH:mm')}h, end at {moment(this.props.event.endDate).format('D/M/Y HH:mm')}h ({this.props.event.duration}h)</p>
-                <button onClick={this.addOption.bind(this)}>Add option</button>
+                {this.props.event && Roles.userIsInRole(Meteor.userId(), ['admin']) ? <button onClick={this.addOption.bind(this)}>Add option</button> : undefined}
                 {this.state.status == 'add' ? this.renderModalOption({_id: '', label: '', value: ''}) : undefined}
                 {this.props.event.options && this.props.event.options.length > 0 ? this.renderOptions() : undefined}
                 {this.renderParticipants()}
@@ -227,7 +231,7 @@ export default class Event extends React.Component {
         updateEvent = (name, place, startDate, endDate, duration) => {
             Meteor.call('events.update', this.props.event._id, name, place, startDate, endDate, duration, (err, res) => {
                 if(err) {
-                    this.setState({ error: err.error });
+                    this.setState({ error: err.message });
                 } else {
                     this.handleModalClose();
                 }

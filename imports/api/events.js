@@ -12,6 +12,9 @@ if(Meteor.isServer) {
     Meteor.publish('events', function () {
         return Events.find(); 
     });
+    Meteor.publish("userStatus", function() {
+        return Meteor.users.find();
+    });
 }
 
 Meteor.methods({
@@ -148,6 +151,17 @@ Meteor.methods({
             }
         });
     },
+    'events.findUserByUsername'(username){
+        if (!this.isSimulation)
+            return Accounts.findUserByUsername(username);
+    },
+    'events.UserIsOnline'(username) {
+        if (!this.isSimulation) {
+            if(Accounts.findUserByUsername(username)) {
+                return Accounts.findUserByUsername(username).status.online;
+            }
+        }
+    },
     'events.finish'() {
         if(!Events.findOne({state: 'current'})) {
             throw new Meteor.Error('no current event');
@@ -160,6 +174,5 @@ Meteor.methods({
         }, {
             $set: {state: 'finished'}
         });
-
     }
 });

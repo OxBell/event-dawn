@@ -43,7 +43,7 @@ export default class AddChoice extends React.Component {
             if (!err) {
                 this.handleModalClose();
             } else {
-                this.setState({error: err.reason });
+                this.setState({error: err.message });
             }
 
         });

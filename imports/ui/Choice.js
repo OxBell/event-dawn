@@ -35,7 +35,7 @@ export default class Choice extends React.Component {
         });
         Meteor.call('polls.updateChoices', this.props.poll._id, this.props.poll.choices, (err, res) => {
             if (err) {
-                this.setState({error : err.error});
+                this.setState({error : err.message});
             }
         });
     }
@@ -71,7 +71,7 @@ export default class Choice extends React.Component {
                 if (!err) {
                     this.setState({ alreadyVote: false, error:'' });
                 } else {
-                    this.setState({error : err.error});
+                    this.setState({error : err.message});
                 }
             });
         } else {
@@ -89,7 +89,7 @@ export default class Choice extends React.Component {
                 if (!err) {
                     this.setState({ alreadyVote: true, error: '' });
                 } else {
-                    this.setState({error : err.error});
+                    this.setState({error : err.message});
                 }
             });
         } else {
