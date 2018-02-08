@@ -31,11 +31,10 @@ Accounts.validateNewUser((user) => {
 });
 
 // Meteor.methods({
-//   'users.addRole'(_id) {
-//     try {
-//       Roles.addUsersToRoles(_id, ['normal-user']);
-//     } catch (err) {
-//       throw new Meteor.Error(500, 'can\'t add role to user', err);
-//     }
+//   'users.getCurrentUser'() {
+//     if(!Meteor.userId()) {
+//       throw new Meteor.Error(403, 'not authorized');
+//     } 
+//     return Meteor.user();
 //   }
 // });
