@@ -52,7 +52,7 @@ Meteor.methods({
             options: choice.options
         });
     },
-    'events.update'(_id, name, place, startDate, endDate, duration, options) {
+    'events.update'(_id, name, place, startDate, endDate, duration) {
         if(!this.userId || !Roles.userIsInRole(this.userId, ['admin'])){
             throw new Meteor.Error(403, 'not-authorized');
         }
@@ -68,8 +68,71 @@ Meteor.methods({
                 place,
                 startDate,
                 endDate, 
-                duration,
+                duration
+            }
+        });
+    },
+    'events.updateOption'(_id, option) {
+        
+        if(!this.userId || !Roles.userIsInRole(this.userId, ['admin'])){
+            throw new Meteor.Error(403, 'not-authorized');
+        }
+        if (!Events.findOne({ _id })){
+            throw new Meteor.Error('No event!');
+        }
+
+        let options = Events.findOne({ _id }).options;
+        options.forEach(element => {
+            if(element._id === option._id ){
+                element.label = option.label;
+                element.value = option.value;
+            }
+        });
+        Events.update({
+            _id
+        }, {
+            $set: {
                 options
+            }
+        });
+    },
+    'events.removeOption'(_id, option) {
+        
+        if(!this.userId || !Roles.userIsInRole(this.userId, ['admin'])){
+            throw new Meteor.Error(403, 'not-authorized');
+        }
+        if (!Events.findOne({ _id })){
+            throw new Meteor.Error('No event!');
+        }
+
+        let options = Events.findOne({ _id }).options;
+        options.forEach((element, i) => {
+            if(element._id === option._id ){
+                options.splice(i,1)
+            }
+        });
+        Events.update({
+            _id
+        }, {
+            $set: {
+                options
+            }
+        });
+    },
+    'events.addOption'(_id, option) {
+        
+        if(!this.userId || !Roles.userIsInRole(this.userId, ['admin'])){
+            throw new Meteor.Error(403, 'not-authorized');
+        }
+        if (!Events.findOne({ _id })){
+            throw new Meteor.Error('No event!');
+        }
+
+        Events.update({
+            _id
+        }, {
+            $addToSet: {
+                options: option
             }
         });
     },

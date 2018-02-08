@@ -5,6 +5,8 @@ import moment from 'moment';
 import Modal from "react-modal";
 import { Roles } from 'meteor/alanning:roles';
 import TextField from 'material-ui/TextField';
+import shortid from 'shortid';
+
 
 import { Events } from '../api/events';
 import { Polls } from '../api/polls';
@@ -16,15 +18,19 @@ export default class Event extends React.Component {
             poll: null,
             choice: null,
             isOpen: false,
+            optionIsOpen: false,
             participants: null,
             participate: false,
             name: this.props.event.name,
             place: this.props.event.place,
             startDate: this.props.event.startDate,
             endDate: this.props.event.endDate,
-            options: this.props.event.options,
+            labelOption:'',
+            option: '',
             error: '',
-            errorModal: ''
+            errorModal: '',
+            errorModalOption: '',
+            status: ''
         };
     }
 
@@ -43,53 +49,12 @@ export default class Event extends React.Component {
                 } else {
                     this.setState({ participate: false });
                 }
-                this.setState( {options: Events.findOne({state: 'current'}).options} );
             }
         });
     }
 
     componentWillUnmount() {
         this.eventsTracker.stop();
-    }
-
-    genereEvent() {
-        if(this.props.event) {
-            this.setState({ error: 'Already have an event!'} );
-        } else {
-            const choices = Polls.findOne({
-                state: 'current'
-            }).choices;
-            Meteor.call('polls.getBestChoice', choices, (err, res) => {
-                if(err) {
-                    this.setState({error : err.error});
-                } else {
-                    const choice = res;
-                    Meteor.call('polls.getParticipants', choice.votes, (err, res) => {
-                        if(err) {
-                            this.setState({error : err.error});
-                        } else {
-                            const participants = res;
-                            this.setState({ participants });
-                            Meteor.call('events.insert', choice, participants, (err, res) => {
-                                if (!err) {
-                                    const idPoll = Polls.findOne({
-                                        state: 'current'
-                                    })._id;
-                                    Meteor.call('polls.finish', idPoll, (err, res) => {
-                                        if (!err) {
-                                        } else {
-                                            this.setState({error : err.error});
-                                        }
-                                    });
-                                } else {
-                                    this.setState({error : err.error});
-                                }
-                            });
-                        }
-                    });
-                }
-            });
-        }
     }
 
     addParticipant() {
@@ -106,6 +71,93 @@ export default class Event extends React.Component {
         }
     }
 
+    handleModalOptionClose() {
+        this.setState({
+            optionIsOpen: false,
+            labelOption: '',
+            option: ''
+        });
+    }
+    
+
+    renderModalOption(option) {
+
+        if(this.state.status=='add'){            
+            option._id = shortid.generate();
+        }
+
+        onLabelOptionChange = (e) => {
+            this.setState({ labelOption: e.target.value });            
+        }
+
+        onOptionChange = (e) => {
+            this.setState({ option: e.target.value });
+        }
+
+        onSubmitOption = (e) => {
+            e.preventDefault();
+            if(this.state.labelOption != '' && this.state.option != ''){
+                idOption = option._id;
+                label = this.state.labelOption;
+                value = this.state.option;
+                if(this.state.status == 'edit'){
+                    Meteor.call('events.updateOption', this.props.event._id, {_id :idOption, label, value}, (err, res) => {
+                        if(err) {
+                            this.setState({errorModalOption: err.error});
+                        } else {
+                            this.setState({optionIsOpen: false});
+                        }
+                    });
+                } else {
+                    Meteor.call('events.addOption', this.props.event._id, {_id :idOption, label, value}, (err, res) => {
+                        if(err) {
+                            this.setState({errorModalOption: err.error});
+                        } else {
+                            this.setState({optionIsOpen: false});
+                        }
+                    });
+                }
+            } else {
+                this.setState({errorModalOption: 'Options must be enter!'});
+            }
+        }
+
+        return (
+            <Modal
+                isOpen={this.state.optionIsOpen} 
+                contentLabel="Edit Option"
+                onAfterOpen={() => this.refs['label-'+option._id].focus()}
+                onRequestClose={this.handleModalOptionClose.bind(this)}
+                className="boxed-view__box"
+                overlayClassName="boxed-view boxed-view--modal">
+                {this.state.status == 'edit' ? <h1>Edit Option</h1> : <h1>Add Option</h1>}
+                <form onSubmit={onSubmitOption.bind(this)} className="boxed-view__form">
+                    <input type="text" value={this.state.labelOption} onChange={onLabelOptionChange.bind(this)} ref={"label-"+option._id} placeholder="Option Label"/>
+                    <input type="text" value={this.state.option} onChange={onOptionChange.bind(this)} ref={option._id} placeholder="Option"/>
+                    {this.state.status == 'edit' ? <button className='button'>Edit Option</button> : <button className='button'>Add Option</button>}
+                    <button type="button" className="button button--secondary" onClick={this.handleModalOptionClose.bind(this)}>Cancel</button>
+                </form>
+            </Modal>
+        );
+    }
+
+    editOption(option){
+        this.setState({labelOption: option.label, option: option.value });  
+        this.setState({optionIsOpen: true, status: 'edit'});
+    }
+
+    addOption(option) {
+        this.setState({optionIsOpen: true, status:'add'});    
+    }
+
+    deleteOption(option) {
+        Meteor.call('events.removeOption', this.props.event._id, option, (err, res) => {
+            if (err) {
+                this.setState({error : err.error});
+            }
+        });
+    }
+
     renderParticipants() {
         return this.props.event.users.map((user) => {
             return <p key={user}>{user}</p>
@@ -113,9 +165,15 @@ export default class Event extends React.Component {
     }
 
     renderOptions() {
-        return this.props.event.options.map((option) => {
+        const options = this.props.event.options;
+        return options.map((option) => {
             return (
-                <p key={option._id}>{option.label} : {option.value}</p>
+                <div key={option._id}>
+                    <p>{option.label} : {option.value}</p>
+                    {this.props.event && Roles.userIsInRole(Meteor.userId(), ['admin']) ? <button onClick={this.editOption.bind(this, option)}>Edit</button> : undefined}
+                    {this.props.event && Roles.userIsInRole(Meteor.userId(), ['admin']) ? <button onClick={this.deleteOption.bind(this, option)}>X</button> : undefined}
+                    {this.state.status == 'edit' ? this.renderModalOption(option) : undefined}
+                </div>
             );
         });
     }
@@ -126,6 +184,8 @@ export default class Event extends React.Component {
                 <h1>{this.props.event.name} - manager : {this.props.event.username}</h1>
                 <p>Place : {this.props.event.place}</p>
                 <p>Start at {moment(this.props.event.startDate).format('D/M/Y HH:mm')}h, end at {moment(this.props.event.endDate).format('D/M/Y HH:mm')}h ({this.props.event.duration}h)</p>
+                <button onClick={this.addOption.bind(this)}>Add option</button>
+                {this.state.status == 'add' ? this.renderModalOption({_id: '', label: '', value: ''}) : undefined}
                 {this.props.event.options && this.props.event.options.length > 0 ? this.renderOptions() : undefined}
                 {this.renderParticipants()}
             </div>
@@ -135,7 +195,6 @@ export default class Event extends React.Component {
     handleModalClose() {
         this.setState({
             isOpen: false,
-            options: this.props.event.options
         });
     }
 
@@ -165,30 +224,8 @@ export default class Event extends React.Component {
             });
         }
 
-        onOptionLabelChange = (e) => {
-            let options = [];
-            this.state.options.forEach(option => {                
-                if(option._id === e.target.id.slice(5)) {
-                    option.label = e.target.value;
-                }
-                options.push(option);
-            });
-            this.setState({ options });
-        }
-    
-        onOptionChange = (e) => {
-            let options = [];
-            this.state.options.forEach(option => {                
-                if(option._id === e.target.id.slice(5)) {
-                    option.value = e.target.value;
-                }
-                options.push(option);
-            });
-            this.setState({ options });
-        }
-
-        updateEvent = (name, place, startDate, endDate, duration, options) => {
-            Meteor.call('events.update', this.props.event._id, name, place, startDate, endDate, duration, options, (err, res) => {
+        updateEvent = (name, place, startDate, endDate, duration) => {
+            Meteor.call('events.update', this.props.event._id, name, place, startDate, endDate, duration, (err, res) => {
                 if(err) {
                     this.setState({ error: err.error });
                 } else {
@@ -207,19 +244,10 @@ export default class Event extends React.Component {
             const endDate = new Date(this.state.endDate).getTime();
             const duration = moment(endDate).diff(startDate, 'hours');
             if(this.props.event) {
-                this.state.options.forEach((option) => {
-                    if(!this.refs[option._id].value && !this.refs['label-'+option._id].value) {
-                        errMod = true;
-                    }
-                });
-                if(!errMod) {
-                    updateEvent(name, place, startDate, endDate, duration , options);
-                } else {
-                    this.setState({errorModal: 'Options must be enter!'});
-                }
+                updateEvent(name, place, startDate, endDate, duration);
             } else {
                 this.setState({error: 'No event to edit!'});
-            }            
+            }
         }
 
         return(
@@ -270,22 +298,6 @@ export default class Event extends React.Component {
                                 onChange={onPlaceChange.bind(this)} 
                                 value={this.state.place}
                             />
-
-                            {this.state.options.map(option => 
-                                <div key={option._id ? option._id : this.state.options.length+1}>
-                                    <input id={'label'+option._id} type="text" ref={"label-"+option._id} 
-                                        placeholder="Option Label"
-                                        value={option.label}
-                                        onChange={onOptionLabelChange.bind(this)}
-                                    />
-                                    {/* <button type="button" onClick={this.removeOption.bind(this, option)}>X</button> */}
-                                    <input id={'value'+option._id} type="text" ref={option._id} 
-                                        placeholder="Option"
-                                        value={option.value}
-                                        onChange={onOptionChange.bind(this)}
-                                    />
-                                </div>
-                            )}
 
                         <button className='button'>Edit Event</button>
                         <button type="button" className="button button--secondary" onClick={this.handleModalClose.bind(this)}>Cancel</button>
